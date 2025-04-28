@@ -76,7 +76,7 @@ Synchronized IoT data pipeline with computer vision processing
 The entire system is deployed on Render , a cloud platform, allowing users to test the system via a web interface. Below is the link to the live website:
 
 ## Live Website Link
-Click here to access the live system
+[Click here to access the live system](https://fire-gas-leak-detection-system.onrender.com)
 
 ## Demonstration Video
 A video demonstrating the system's functionality is available below. It includes:
@@ -84,7 +84,7 @@ How to use the Flask web app.
 Processing live webcam video or uploaded videos.
 Viewing predictions and input parameters.
 
-Watch the demonstration video
+[Watch the demonstration video](https://www.youtube.com/watch?v=yW5mhh5N3Bk)
 
 ## Future Enhancements
 - Integrate real IoT devices for live sensor data.
