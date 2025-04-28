@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire & Gas Leak Detection Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; /* Professional sans-serif for body */
+            color: #2C3E50;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Blurred background with smooth color transition */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #D6EAF8; /* Start with sky blue */
+            animation: backgroundChange 30s infinite ease-in-out; /* Very slow transition */
+            filter: blur(10px); /* Soft blur effect */
+        }
+
+        @keyframes backgroundChange {
+            0% {
+                background-color: #D6EAF8; /* Sky blue */
+            }
+            50% {
+                background-color: #FAD7A0; /* Soft orange */
+            }
+            100% {
+                background-color: #D6EAF8; /* Back to sky blue */
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #000000;
+            text-shadow: 
+                -2px -2px 0 #E67E22,  
+                 2px -2px 0 #E67E22,
+                -2px  2px 0 #E67E22,
+                 2px  2px 0 #E67E22;
+            font-family: 'Montserrat', sans-serif; /* Professional sans-serif for headings */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2, h3 {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .video-feed,
+        .data-feed {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .video-feed:hover,
+        .data-feed:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .video-feed h2,
+        .data-feed h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #E67E22;
+            border-bottom: 2px solid #F5CBA7;
+            padding-bottom: 5px;
+        }
+
+        .video-feed img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            transition: border-color 0.3s ease;
+        }
+
+        .video-feed img:hover {
+            border-color: #FAD7A0;
+        }
+
+        .data-feed {
+            background: #f9f9f9;
+            padding: 25px;
+        }
+
+        #data p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: background 0.3s ease;
+        }
+
+        #data p:hover {
+            background: #EAF8FF;
+        }
+
+        #data strong {
+            color: #E67E22;
+            font-weight: 500;
+        }
+
+        #data span {
+            color: #2C3E50;
+            font-weight: 400;
+        }
+
+        .alert {
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .alert.safe {
+            color: #28a745;
+            background: linear-gradient(135deg, #e6f4ea, #d4edda);
+        }
+
+        .alert.gas-leak {
+            color: #E67E22;
+            background: linear-gradient(135deg, #FAD7A0, #F5CBA7);
+        }
+
+        .alert.fire-detected {
+            color: #A04000;
+            background: linear-gradient(135deg, #F5CBA7, #FAD7A0);
+        }
+
+        .alert.warning {
+            color: #E67E22;
+            background: linear-gradient(135deg, #FAD7A0, #F5CBA7);
+        }
+
+        .alert.evacuate-immediately {
+            color: #A04000;
+            background: linear-gradient(135deg, #F5CBA7, #FAD7A0);
+        }
+
+        .alert:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes pulse-safe {
+            0% {
+                box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(40, 167, 69, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+            }
+        }
+
+        @keyframes pulse-gas-leak {
+            0% {
+                box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(230, 126, 34, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+            }
+        }
+
+        @keyframes pulse-fire-detected {
+            0% {
+                box-shadow: 0 0 15px rgba(160, 64, 0, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(160, 64, 0, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(160, 64, 0, 0.3);
+            }
+        }
+
+        @keyframes pulse-warning {
+            0% {
+                box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(230, 126, 34, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(230, 126, 34, 0.3);
+            }
+        }
+
+        @keyframes pulse-evacuate-immediately {
+            0% {
+                box-shadow: 0 0 15px rgba(160, 64, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(160, 64, 0, 0.7);
+            }
+
+            100% {
+                box-shadow: 0 0 15px rgba(160, 0, 0, 0.5);
+            }
+        }
+
+        .alert.pulse-safe {
+            animation: pulse-safe 2s infinite;
+        }
+
+        .alert.pulse-gas-leak {
+            animation: pulse-gas-leak 2s infinite;
+        }
+
+        .alert.pulse-fire-detected {
+            animation: pulse-fire-detected 2s infinite;
+        }
+
+        .alert.pulse-warning {
+            animation: pulse-warning 2s infinite;
+        }
+
+        .alert.pulse-evacuate-immediately {
+            animation: pulse-evacuate-immediately 1.5s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #data span {
+            display: inline-block;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .upload-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .upload-btn {
+            background: #E67E22;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+        }
+
+        .upload-btn input[type="file"] {
+            display: none;
+        }
+
+        .webcam-btn {
+            background: #A04000;
+        }
+
+        .prediction-section {
+            width: 100%;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .prediction-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #E67E22;
+            border-bottom: 2px solid #F5CBA7;
+            padding-bottom: 5px;
+        }
+
+        .prediction-boxes {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .prediction-box {
+            flex: 1;
+            min-width: 250px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .prediction-box h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #2C3E50;
+        }
+
+        .prediction-box .alert {
+            margin-top: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 0 10px;
+            }
+
+            .video-feed,
+            .data-feed {
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .video-feed h2,
+            .data-feed h2 {
+                font-size: 1.3rem;
+            }
+
+            #data p {
+                font-size: 0.95rem;
+            }
+
+            .alert {
+                font-size: 1.2rem;
+                padding: 12px;
+            }
+
+            .prediction-boxes {
+                flex-direction: column;
+            }
+        }
+
+        /* Footer styles */
+        .footer {
+            background: #fff;
+            padding: 20px;
+            text-align: center;
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+
+        .footer .developers {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: transparent;
+        }
+
+        .footer .developers h3 {
+            font-size: 18px;
+            color: #A04000;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .footer .developer-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer .developer-details {
+            font-size: 14px;
+            color: #2C3E50;
+        }
+
+        .footer .developer-details span {
+            font-weight: bold;
+        }
+
+        .footer .developer-details a {
+            color: #E67E22;
+            text-decoration: none;
+            margin: 0 5px;
+            transition: color 0.3s ease;
+        }
+
+        .footer .developer-details a:hover {
+            color: #A04000;
+            text-decoration: underline;
+        }
+
+        .footer .social-icons {
+            margin-bottom: 15px;
+        }
+
+        .footer .social-icons a {
+            margin: 0 10px;
+            color: #2C3E50;
+            font-size: 20px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer .social-icons a:hover {
+            color: #E67E22;
+        }
+
+        .footer .links {
+            margin-bottom: 15px;
+        }
+
+        .footer .links a {
+            margin: 0 15px;
+            color: #2C3E50;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .footer .links a:hover {
+            color: #E67E22;
+        }
+
+        .footer .copyright {
+            color: #7F8C8D;
+            font-size: 12px;
+        }
+
+        .footer .copyright a {
+            color: #E67E22;
+            text-decoration: none;
+        }
+
+        .footer .copyright a:hover {
+            color: #A04000;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .footer .developer-info {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <h1>AI-Enhanced Fire & Gas  Detection System</h1>
+
+    <div class="upload-container">
+        <label class="upload-btn">
+            📁 Upload Video
+            <input type="file" accept="video/mp4" id="videoInput">
+        </label>
+        <button class="upload-btn webcam-btn" onclick="enableWebcam()">📷 Use Webcam</button>
+    </div>
+
+    <div class="container">
+        <div class="video-feed">
+            <h2>Live Video Feed</h2>
+            <img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+        </div>
+
+        <div class="data-feed">
+            <h2>Detection Analysis</h2>
+            <div id="data">
+                <p><strong>Temperature:</strong> <span id="temperature">-</span>°C</p>
+                <p><strong>Humidity:</strong> <span id="humidity">-</span>%</p>
+                <p><strong>MQ2 Smoke:</strong> <span id="mq2-smoke">-</span>ppm</p>
+                <p><strong>MQ135 Gas:</strong> <span id="mq135-gas">-</span>ppm</p>
+                <p><strong>Flame Detected:</strong> <span id="flame-detected">-</span></p>
+                <p><strong>CV Flame Score:</strong> <span id="cv-flame">-</span></p>
+                <p><strong>CV Smoke Score:</strong> <span id="cv-smoke">-</span></p>
+                <p><strong>Person Detected:</strong> <span id="person-detected">-</span></p>
+            </div>
+            <div id="threat-display" class="alert">
+                System Initializing
+            </div>
+        </div>
+    </div>
+
+    <div class="prediction-section">
+        <h2>Prediction Results</h2>
+        <div class="prediction-boxes">
+            <div class="prediction-box">
+                <h3>Random Forest Model</h3>
+                <div id="rf-prediction" class="alert">Initializing</div>
+            </div>
+            <div class="prediction-box">
+                <h3>Vision Model</h3>
+                <div id="vision-prediction" class="alert">Initializing</div>
+            </div>
+            <div class="prediction-box">
+                <h3>Combined Result</h3>
+                <div id="combined-prediction" class="alert">Initializing</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle video upload
+        document.getElementById('videoInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (!response.ok) throw new Error('Upload failed');
+                return response.json();
+            }).then(data => {
+                console.log('Upload success:', data);
+
+                // Force refresh video feed
+                const videoImg = document.querySelector('.video-feed img');
+                const newSrc = "{{ url_for('video_feed') }}?t=" + Date.now(); // Add timestamp to prevent caching
+                videoImg.src = newSrc;
+            }).catch(error => {
+                console.error('Upload error:', error);
+                alert('Error: ' + error.message);
+            });
+        });
+
+        // Update dashboard data
+        function updateDashboard() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update threat display
+                    const threatDisplay = document.getElementById('threat-display');
+                    const threatClass = data.combined_prediction.toLowerCase().replace(/ /g, '-');
+                    threatDisplay.className = `alert pulse-${threatClass}`;
+                    threatDisplay.textContent = data.combined_prediction;
+
+                    // Update prediction boxes
+                    const rfPrediction = document.getElementById('rf-prediction');
+                    const visionPrediction = document.getElementById('vision-prediction');
+                    const combinedPrediction = document.getElementById('combined-prediction');
+
+                    const rfClass = data.rf_prediction.toLowerCase().replace(/ /g, '-');
+                    const visionClass = data.vision_prediction.toLowerCase().replace(/ /g, '-');
+                    const combinedClass = data.combined_prediction.toLowerCase().replace(/ /g, '-');
+
+                    rfPrediction.className = `alert pulse-${rfClass}`;
+                    visionPrediction.className = `alert pulse-${visionClass}`;
+                    combinedPrediction.className = `alert pulse-${combinedClass}`;
+
+                    rfPrediction.textContent = data.rf_prediction;
+                    visionPrediction.textContent = data.vision_prediction;
+                    combinedPrediction.textContent = data.combined_prediction;
+
+                    // Update all data points
+                    document.getElementById('temperature').textContent = data.inputs["temperature"];
+                    document.getElementById('humidity').textContent = data.inputs["humidity"];
+                    document.getElementById('mq2-smoke').textContent = data.inputs["mq2_smoke"];
+                    document.getElementById('mq135-gas').textContent = data.inputs["mq135_gas"];
+                    document.getElementById('flame-detected').textContent = data.inputs["flame_detected"] ? 'Yes' : 'No';
+                    document.getElementById('cv-flame').textContent = data.inputs["cv_flame_score"].toFixed(3);
+                    document.getElementById('cv-smoke').textContent = data.inputs["cv_smoke_score"].toFixed(3);
+                    document.getElementById('person-detected').textContent = data.inputs["person_detected"] ? 'Yes' : 'No';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update every second
+        setInterval(updateDashboard, 500);
+        updateDashboard();
+    </script>
+
+    <!-- Developer Information Section -->
+    <footer class="footer">
+        <div class="developers">
+            <h3>Developed By</h3>
+            <div class="developer-info">
+                <div class="developer-details">
+                    <span>Mominur Rahman</span> | 
+                    <a href="https://www.linkedin.com/in/mominur--rahman/" target="_blank">LinkedIn</a> | 
+                    <a href="https://github.com/mominurr" target="_blank">GitHub</a> | 
+                    <a href="mailto:contact@mominur.dev">Email</a>
+                </div>
+                <div class="developer-details">
+                    <span>Md. Sakib Hasan</span> | 
+                    <a href="http://www.linkedin.com/in/md-sakib-hasan-1b060b299" target="_blank">LinkedIn</a> | 
+                    <a href="https://github.com/Sakibyash" target="_blank">GitHub</a> | 
+                    <a href="mailto:sakibyash@gmail.com">Email</a>
+                </div>
+            </div>
+        </div>
+        <div class="links">
+            <a href="https://github.com/mominurr/Fire-Gas-Leak-Detection-System" target="_blank">GitHub Project</a>
+        </div>
+        <div class="copyright">
+            © 2025 <a href="https://github.com/mominurr/Fire-Gas-Leak-Detection-System" target="_blank">Fire & Gas Detection System</a>. All rights reserved.
+        </div>
+    </footer>
+</body>
+
+</html>
