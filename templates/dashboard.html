@@ -599,6 +599,13 @@
                 alert('Error: ' + error.message);
             });
         });
+        
+        function enableWebcam() {
+            fetch('/webcam')
+                .then(response => response.json())
+                .then(data => alert(data.message))
+                .catch(error => alert('Webcam error: ' + error.message));
+        }
 
         // Update dashboard data
         function updateDashboard() {
